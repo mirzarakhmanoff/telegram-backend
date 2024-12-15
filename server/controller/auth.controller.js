@@ -10,5 +10,3 @@ class AuthController {
 }
 
 module.exports = new AuthController();
-
-// CLIENT bilan SERVER data muloqot tili bu JSON formatda bo'ladi
