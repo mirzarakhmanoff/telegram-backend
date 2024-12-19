@@ -1,0 +1,98 @@
+const BaseError = require("../errors/base.error");
+const { CONST } = require("../lib/contstants");
+const messageModel = require("../models/message.model");
+const userModel = require("../models/user.model");
+
+class UserController {
+  // [GET]
+  async getMessages(req, res, next) {
+    try {
+      const user = "67606562873d6a47f7fde4a9";
+      const { contactId } = req.params;
+
+      const messages = await messageModel
+        .find({
+          $or: [
+            { sender: user, receiver: contactId },
+            { sender: contactId, receiver: user },
+          ],
+        })
+        .populate({ path: "sender", select: "email" })
+        .populate({ path: "receiver", select: "email" });
+
+      await messageModel.updateMany(
+        { sender: contactId, receiver: user, status: "SENT" },
+        { status: CONST.READ }
+      );
+
+      res.status(200).json({ messages });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async getContacts(req, res, next) {
+    try {
+      const userId = "67606562873d6a47f7fde4a9";
+      const user = await userModel.findById(userId).populate("contacts");
+
+      if (!user) {
+        throw BaseError.NotFound("User not found");
+      }
+
+      const allContacts = user.contacts;
+
+      return res.status(200).json({ contacts: allContacts });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // [POST]
+  async createMessage(req, res, next) {
+    try {
+      const newMessage = await messageModel.create(req.body);
+      const currentMessage = await messageModel
+        .findById(newMessage._id)
+        .populate({ path: "sender", select: "email" })
+        .populate({ path: "receiver", select: "email" });
+      res.status(201).json({ newMessage: currentMessage });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async createContact(req, res, next) {
+    try {
+      const { email } = req.body;
+      const userId = "67606562873d6a47f7fde4a9";
+      const user = await userModel.findById(userId);
+      const contact = await userModel.findOne({ email });
+      if (!contact) throw BaseError.BadRequest("User not found ");
+      if (user.email === contact.email)
+        throw BaseError.BadRequest("You cannot add yourself as a contact");
+      const existingContact = await userModel.findOne({
+        _id: userId,
+        contacts: contact._id,
+      });
+      if (existingContact)
+        throw BaseError.BadRequest("Contact already exis ts");
+
+      await userModel.findByIdAndUpdate(userId, {
+        $push: { contacts: contact._id },
+      });
+      const addedCOntact = await userModel.findByIdAndUpdate(
+        contact._id,
+        {
+          $push: { contacts: userId },
+        },
+        { new: true }
+      );
+      return res
+        .status(201)
+        .json({ message: "Contact added sucsesfully", contact: addedCOntact });
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+module.exports = new UserController();
