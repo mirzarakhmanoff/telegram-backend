@@ -2,6 +2,7 @@ const BaseError = require("../errors/base.error");
 const { CONST } = require("../lib/contstants");
 const messageModel = require("../models/message.model");
 const userModel = require("../models/user.model");
+const mailService = require("../service/mail.service");
 
 class UserController {
   // [GET]
@@ -120,6 +121,37 @@ class UserController {
       next(error);
     }
   }
+  async sendOtp(req, res, next) {
+    try {
+      const { email } = req.body;
+      const existingUser = await userModel.findOne({ email });
+      if (existingUser)
+        throw BaseError.BadRequest("User with this email already exists");
+      await mailService.sendOtp(email);
+      res.status(200).json({ message: "OTP sent successfully" });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async messageRead(req, res, next) {
+    try {
+      const { messages } = req.body;
+      const allMessages = [];
+
+      for (const message of messages) {
+        const updatedMessage = await messageModel.findByIdAndUpdate(
+          message._id,
+          { status: CONST.READ },
+          { new: true }
+        );
+        allMessages.push(updatedMessage);
+      }
+
+      res.status(200).json({ messages: allMessages });
+    } catch (error) {
+      next(error);
+    }
+  }
 
   //PUT
   async updateMessage(req, res, next) {
@@ -145,6 +177,23 @@ class UserController {
       next(error);
     }
   }
+  async updateEmail(req, res, next) {
+    try {
+      const { email, otp } = req.body;
+      const result = await mailService.verifyOtp(email, otp);
+      if (result) {
+        const userId = "67606562873d6a47f7fde4a9";
+        const user = await userModel.findByIdAndUpdate(
+          userId,
+          { email },
+          { new: true }
+        );
+        res.status(200).json({ user });
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
 
   //Delete
   async deleteMessage(req, res, next) {
@@ -152,6 +201,15 @@ class UserController {
       const { messageId } = req.params;
       await messageModel.findOneAndDelete(messageId);
       res.status(200).json({ message: "Message is deleted" });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async deleteUser(req, res, next) {
+    try {
+      const userId = "67606562873d6a47f7fde4a9";
+      await userModel.findByIdAndDelete(userId);
+      res.status(200).json({ message: "User deleted successfully" });
     } catch (error) {
       next(error);
     }
