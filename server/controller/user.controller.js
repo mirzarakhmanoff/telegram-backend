@@ -39,7 +39,21 @@ class UserController {
         throw BaseError.NotFound("User not found");
       }
 
-      const allContacts = user.contacts;
+      const allContacts = user.contacts.map((contact) => contact.toObject());
+      for (const contact of allContacts) {
+        const lastMessage = await messageModel
+          .findOne({
+            $or: [
+              { sender: userId, receiver: contact._id },
+              { sender: contact._id, receiver: userId },
+            ],
+          })
+          .populate({ path: "sender" })
+          .populate({ path: "receiver" })
+          .sort({ createdAt: -1 });
+
+        contact.lastMessage = lastMessage;
+      }
 
       return res.status(200).json({ contacts: allContacts });
     } catch (error) {
@@ -89,6 +103,22 @@ class UserController {
       return res
         .status(201)
         .json({ message: "Contact added sucsesfully", contact: addedCOntact });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  //PUT
+  async updateMessage(req, res, next) {
+    try {
+      const { messageId } = req.params;
+      const { text } = req.body;
+      const updatedMessage = await messageModel.findByIdAndUpdate(
+        messageId,
+        { text },
+        { new: true }
+      );
+      res.status(200).json({ updatedMessage });
     } catch (error) {
       next(error);
     }
