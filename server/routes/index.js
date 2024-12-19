@@ -15,7 +15,9 @@ router.group("/user", (route) => {
   route.get("/contacts", userController.getContacts);
   route.post("/message", userController.createMessage);
   route.post("/contact", userController.createContact);
+  route.post("reaction", userController.createReaction);
   route.put("/message/:messageId", userController.updateMessage);
+  route.put("/profile", userController.updateProfile);
   route.delete("/message/:messageId", userController.deleteMessage);
 });
 

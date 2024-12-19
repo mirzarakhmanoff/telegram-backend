@@ -107,6 +107,19 @@ class UserController {
       next(error);
     }
   }
+  async createReaction(req, res, next) {
+    try {
+      const { messageId, reaction } = req.body;
+      const updatedMessage = await messageModel.findByIdAndUpdate(
+        messageId,
+        { reaction },
+        { new: true }
+      );
+      res.status(201).json({ updatedMessage });
+    } catch (error) {
+      next(error);
+    }
+  }
 
   //PUT
   async updateMessage(req, res, next) {
@@ -119,6 +132,15 @@ class UserController {
         { new: true }
       );
       res.status(200).json({ updatedMessage });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async updateProfile(req, res, next) {
+    try {
+      const { userId, ...payload } = req.body;
+      await userModel.findByIdAndUpdate(userId, payload);
+      res.status(200).json({ message: "Profile is updated" });
     } catch (error) {
       next(error);
     }
