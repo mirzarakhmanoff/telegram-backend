@@ -123,6 +123,17 @@ class UserController {
       next(error);
     }
   }
+
+  //Delete
+  async deleteMessage(req, res, next) {
+    try {
+      const { messageId } = req.params;
+      await messageModel.findOneAndDelete(messageId);
+      res.status(200).json({ message: "Message is deleted" });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new UserController();
