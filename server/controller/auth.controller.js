@@ -9,11 +9,11 @@ class AuthController {
       const existUser = await userModel.findOne({ email });
       if (existUser) {
         await mailService.sendOtp(existUser.email);
-        return res.status(200).json({ message: "existing_user" });
+        return res.status(200).json({ email: existUser.email });
       }
       const newUser = await userModel.create({ email });
       await mailService.sendOtp(email);
-      return res.status(200).json({ message: "new_user" });
+      return res.status(200).json({ email: newUser.email });
 
       res.status(201).json({ email });
     } catch (error) {
