@@ -1,5 +1,6 @@
 const authController = require("../controller/auth.controller.js");
 const userController = require("../controller/user.controller.js");
+const authorizationMiddleware = require("../middlewares/authorization.middleware.js");
 
 const router = require("express").Router();
 
@@ -21,7 +22,7 @@ router.group("/user", (route) => {
   route.post("message-read", userController.messageRead);
 
   route.put("/message/:messageId", userController.updateMessage);
-  route.put("/profile", userController.updateProfile);
+  route.put("/profile", authorizationMiddleware, userController.updateProfile);
   route.put("email", userController.updateEmail);
 
   route.delete("/message/:messageId", userController.deleteMessage);
