@@ -33,7 +33,7 @@ class UserController {
   }
   async getContacts(req, res, next) {
     try {
-      const userId = "67606562873d6a47f7fde4a9";
+      const userId = req.user._id;
       const user = await userModel.findById(userId).populate("contacts");
 
       if (!user) {
@@ -78,7 +78,7 @@ class UserController {
   async createContact(req, res, next) {
     try {
       const { email } = req.body;
-      const userId = "67606562873d6a47f7fde4a9";
+      const userId = req.user._id;
       const user = await userModel.findById(userId);
       const contact = await userModel.findOne({ email });
       if (!contact) throw BaseError.BadRequest("User not found ");
@@ -101,9 +101,7 @@ class UserController {
         },
         { new: true }
       );
-      return res
-        .status(201)
-        .json({ message: "Contact added sucsesfully", contact: addedCOntact });
+      return res.status(201).json({ contact: addedCOntact });
     } catch (error) {
       next(error);
     }

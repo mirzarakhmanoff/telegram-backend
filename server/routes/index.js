@@ -12,20 +12,36 @@ router.group("/auth", (route) => {
 });
 
 router.group("/user", (route) => {
-  route.get("/messages/:contactId", userController.getMessages);
-  route.get("/contacts", userController.getContacts);
+  route.get(
+    "/messages/:contactId",
+    authorizationMiddleware,
+    userController.getMessages
+  );
+  route.get("/contacts", authorizationMiddleware, userController.getContacts);
 
-  route.post("/message", userController.createMessage);
-  route.post("/contact", userController.createContact);
-  route.post("/reaction", userController.createReaction);
+  route.post("/message", authorizationMiddleware, userController.createMessage);
+  route.post("/contact", authorizationMiddleware, userController.createContact);
+  route.post(
+    "/reaction",
+    authorizationMiddleware,
+    userController.createReaction
+  );
   route.post("/send-otp", authorizationMiddleware, userController.sendOtp);
-  route.post("message-read", userController.messageRead);
+  route.post(
+    "message-read",
+    authorizationMiddleware,
+    userController.messageRead
+  );
 
   route.put("/message/:messageId", userController.updateMessage);
   route.put("/profile", authorizationMiddleware, userController.updateProfile);
   route.put("/email", authorizationMiddleware, userController.updateEmail);
 
-  route.delete("/message/:messageId", userController.deleteMessage);
+  route.delete(
+    "/message/:messageId",
+    authorizationMiddleware,
+    userController.deleteMessage
+  );
   route.delete("/", authorizationMiddleware, userController.deleteUser);
 });
 
