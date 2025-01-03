@@ -20,4 +20,9 @@ io.on("connection", (socket) => {
     addOnlineUser(user, socket.id);
     io.emit("getOnlineUsers", users);
   });
+  socket.on("disconnect", () => {
+    console.log("User disconnect", socket.id);
+    users = users.filter((u) => u.socketId !== socket.id);
+    io.emit("getOnlineUsers", users);
+  });
 });
